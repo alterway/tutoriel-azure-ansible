@@ -1,0 +1,30 @@
+---
+# Tasks for varnish servers
+
+- name: add gpg key
+  shell: curl http://repo.varnish-cache.org/debian/GPG-key.txt | sudo apt-key add -
+
+- name: add repository
+  shell: echo "deb http://repo.varnish-cache.org/ubuntu/ precise varnish-3.0" | sudo tee -a /etc/apt/sources.list
+  
+- name: install libpcre3
+  sudo: yes
+  apt: pkg=libpcre3 state=latest update_cache=yes
+
+- name: install varnish
+  sudo: yes
+  apt: pkg=varnish state=latest update_cache=yes
+
+- name: ensure varnish is started
+  sudo: yes
+  service: name=varnish state=started
+  ignore_errors: yes
+
+- name: create varnish config
+  sudo: yes
+  template: src=varnish.j2 dest=/etc/default/varnish
+
+- name: create cluster vcl
+  sudo: yes
+  template: src=cluster.vcl.j2 dest=/etc/varnish/cluster.vcl
+  notify: [restart varnish]

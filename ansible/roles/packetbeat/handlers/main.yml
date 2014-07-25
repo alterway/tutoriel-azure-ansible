@@ -1,0 +1,5 @@
+---
+# Handlers for packetbeat agents
+- name: restart packetbeat
+  sudo: yes
+  action: service name=packetbeat state=restarted

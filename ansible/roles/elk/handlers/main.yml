@@ -1,0 +1,21 @@
+---
+# Handlers for elasticsearch 
+- name: restart elasticsearch
+  sudo: yes
+  action: service name=elasticsearch state=restarted
+
+- name: restart elasticsearch
+  sudo: yes
+  action: service name=elasticsearch state=restarted
+  
+- name: restart nginx
+  service: name=nginx state=restarted
+  sudo: yes
+
+- name: reload nginx configuration
+  service: name=nginx state=reloaded
+  sudo: yes
+
+- name: reload nginx
+  service: name=nginx state=reloaded
+  sudo: yes

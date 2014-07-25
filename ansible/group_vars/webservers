@@ -1,0 +1,18 @@
+repo: https://github.com/andrewelkins/Laravel-4-Bootstrap-Starter-Site
+http_port: 80
+max_clients: 200
+#CHANGER le nom de la machien 5
+webroot: /var/www/awubuntum5.alterwaycloud.net/public
+servername: awubuntum5.alterwaycloud.net
+#CHANGER L'IP PAR CELLE ATTRIBUEE par AZURE (vm no 3)
+dbhost: "10.2.0.6"
+db: "cluster"
+dbuser: "foobar"
+dbpassword: "foobar"
+smtp_host: "smtp.example.com"
+smtp_port: 465
+smtp_address: "email@example;com"
+smtp_name: "name"
+smtp_encryption: "ssl"
+smtp_username: "AUSER"
+smtp_password: "APASSWORD"

@@ -1,0 +1,5 @@
+---
+# Handlers for ssh servers
+- name: restart openssh server
+  service: name=ssh state=restarted
+  sudo: yes

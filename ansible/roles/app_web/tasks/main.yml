@@ -1,0 +1,91 @@
+---
+# Playbook for app web servers
+
+- name: create site configurations
+  sudo: yes
+  template: src=sites-available/{{ servername }}.j2 dest=/etc/nginx/sites-available/{{ servername }}
+
+- name: enable site
+  sudo: yes
+  action: file state=link src=/etc/nginx/sites-available/{{ servername }} path=/etc/nginx/sites-enabled/{{ servername }}
+
+- name: install composer
+  shell: curl -sS https://getcomposer.org/installer | /usr/bin/php && sudo /bin/mv -f composer.phar /usr/local/bin/composer creates=/usr/local/bin/composer
+
+- name: set perms of /var/www
+  sudo: yes
+  file:
+    path: /var/www
+    owner: "{{ ansible_ssh_user }}"
+    group: www-data
+    mode: 0774
+    state: directory
+
+- name: get repo
+  tags: [install_app, update_app]
+  git: repo={{ repo }} accept_hostkey=true
+       dest=/var/www/{{ servername }}
+
+- name: composer update
+  tags: [install_app, update_app]
+  composer: prefer_dist=true working_dir=/var/www/{{ servername }}
+
+- name: app database configurations
+  sudo: yes
+  template: src=app-config/database.php.j2 dest=/var/www/{{ servername }}/app/config/database.php
+  
+- name: app mail configurations
+  sudo: yes
+  template: src=app-config/mail.php.j2 dest=/var/www/{{ servername }}/app/config/mail.php  
+  
+- name: app mail configurations
+  sudo: yes
+  template: src=app-config/app.php.j2 dest=/var/www/{{ servername }}/app/config/app.php   
+
+- name: app session configurations
+  sudo: yes
+  template: src=app-config/session.php.j2 dest=/var/www/{{ servername }}/app/config/session.php 
+
+- name: artisan migrate install
+  tags: [install_app]
+  shell: chdir=/var/www/{{ servername }} /usr/bin/php artisan migrate:install --database="pgsql"
+  ignore_errors: yes
+  when: masterdb
+
+- name: artisan migrate
+  tags: [install_app, update_app]
+  shell: chdir=/var/www/{{ servername }} /usr/bin/php artisan migrate --database="pgsql"
+  ignore_errors: yes
+  when: masterdb
+
+- name: artisan seed data
+  tags: [install_app, update_app]
+  shell: chdir=/var/www/{{ servername }} /usr/bin/php artisan db:seed --database="pgsql"
+  ignore_errors: yes
+  when: masterdb
+  
+- name: set permissions for web root
+  tags: [install_app, update_app]
+  sudo: yes
+  file:
+    path: /var/www/{{ servername }}
+    owner: "{{ ansible_ssh_user }}"
+    group: www-data
+    mode: 0774
+    recurse: true
+    state: directory
+    
+- name: set permissions for web storage
+  tags: [install_app, update_app]
+  sudo: yes
+  file:
+    path: /var/www/{{ servername }}/app/storage
+    owner: "{{ ansible_ssh_user }}"
+    group: www-data
+    mode: 0775
+    recurse: true
+    state: directory
+
+- name: restart nginx
+  service: name=nginx state=restarted
+  sudo: yes

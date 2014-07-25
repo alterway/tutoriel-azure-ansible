@@ -1,0 +1,6 @@
+es_deb: "https://download.elasticsearch.org/elasticsearch/elasticsearch/elasticsearch-1.1.0.deb"
+es_kibana_v: "3.1.0"
+es_kibana: "https://github.com/packetbeat/kibana/releases/download/v3.1.0-pb/kibana-{{ es_kibana_v }}-packetbeat.tar.gz"
+es_dashboard_v: "0.2.1"
+es_dashboard: "https://github.com/packetbeat/dashboards/archive/v{{ es_dashboard_v }}.tar.gz"
+es_port: 9200

@@ -1,0 +1,67 @@
+---
+# The main playbook to deploy the webapp
+
+# Init Machines
+- hosts: targets
+  remote_user: devops
+  tags:
+    - init
+  roles:
+    - common
+    
+# Setup ELK
+- hosts: elastic_cluster
+  remote_user: devops
+  tags:
+    - setup_elk
+  roles:
+    - elk    
+
+# Setup PacketBeat Agent
+- hosts: packetbeat_nodes
+  remote_user: devops
+  tags:
+    - setup_packetbeat
+  roles:
+    - packetbeat
+
+# Setup Databases
+- hosts: databases
+  remote_user: devops
+  tags:
+    - setup_db
+  roles:
+    - postgresql
+
+# Setup cluster master
+- hosts: databases_master
+  remote_user: devops
+  tags:
+    - setup_db_cluster
+  roles:
+    - pg_master
+
+# Setup cluster hot standby
+- hosts: databases_slave
+  remote_user: devops
+  tags:
+    - setup_db_cluster
+  roles:
+    - pg_slave
+
+# Setup Web servers
+- hosts: webservers
+  remote_user: devops
+  tags:
+    - setup_web
+  roles:
+    - nginx
+    - app_web
+
+# Setup Load balancers
+- hosts: load_balancers
+  remote_user: devops
+  tags:
+    - setup_load_balancer
+  roles:
+    - varnish

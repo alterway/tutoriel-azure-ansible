@@ -1,0 +1,34 @@
+[targets]
+VM-1 ansible_ssh_user=devops ansible_ssh_host=VM-1.cloudapp.net
+VM-2 ansible_ssh_user=devops ansible_ssh_host=VM-2.cloudapp.net
+VM-3 ansible_ssh_user=devops ansible_ssh_host=VM-3.cloudapp.net
+VM-4 ansible_ssh_user=devops ansible_ssh_host=VM-4.cloudapp.net
+VM-5 ansible_ssh_user=devops ansible_ssh_host=VM-5.cloudapp.net
+VM-6 ansible_ssh_user=devops ansible_ssh_host=VM-6.cloudapp.net
+
+[packetbeat_nodes]
+VM-1 
+VM-2 
+VM-3 
+VM-4 
+VM-5
+
+[databases]
+VM-3
+VM-4
+
+[databases_master]
+VM-3
+
+[databases_slave]
+VM-4
+
+[webservers]
+VM-1 masterdb=true
+VM-2 masterdb=false
+
+[load_balancers]
+VM-5
+
+[elastic_cluster]
+VM-6 

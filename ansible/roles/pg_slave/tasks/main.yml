@@ -1,0 +1,63 @@
+---
+# Tasks for PostgreSQL slave
+- name: add master public key
+  sudo: yes
+  authorized_key: user=postgres state=present key="{{ lookup('file', '../../../keys/' + item + '/id_rsa.pub') }}"
+  with_items: groups.databases_master
+
+- name: add master public to known_hosts
+  sudo: yes
+  shell: creates=/master_key_added /usr/bin/ssh-keyscan -H {{ db_master }} >> /var/lib/postgresql/.ssh/known_hosts && touch /master_key_added
+
+- name: sync .ssh
+  sudo: yes
+  synchronize: dest=/var/lib/postgresql/.ssh src=keys/{{ ansible_hostname }}/ 
+
+- name: set perms of .ssh
+  sudo: yes
+  file:
+    path: /var/lib/postgresql/.ssh
+    owner: postgres
+    group: postgres
+    mode: 0700
+    recurse: true
+
+- name: ensure pg stopped
+  tags: [repmgr]
+  sudo: yes
+  service: name=postgresql state=stopped
+
+- name: truncate current data
+  tags: [repmgr]
+  sudo: yes
+  sudo_user: postgres
+  shell: /bin/rm -rf main chdir=/var/lib/postgresql/9.3/
+
+- name: create repmgr dir
+  tags: [repmgr]
+  sudo: yes
+  sudo_user: postgres
+  shell: /bin/mkdir -p /var/lib/postgresql/9.3/repmgr
+
+- name: create repmgr config
+  tags: [repmgr]
+  sudo: yes
+  sudo_user: postgres
+  template: src=repmgr.conf.j2 dest=/var/lib/postgresql/9.3/repmgr/repmgr.conf
+
+- name: clone db master
+  tags: [repmgr]
+  sudo: yes
+  sudo_user: postgres
+  shell: /usr/bin/repmgr -D /var/lib/postgresql/9.3/main/ -d {{ db_name }} -p 5432 -U repmgr -R postgres --verbose standby clone {{ db_master }}
+
+- name: ensure pg running
+  tags: [repmgr]
+  sudo: yes
+  service: name=postgresql state=started
+
+- name: register db slave
+  tags: [repmgr]
+  sudo: yes
+  sudo_user: postgres
+  shell: /usr/bin/repmgr -f /var/lib/postgresql/9.3/repmgr/repmgr.conf --verbose standby register

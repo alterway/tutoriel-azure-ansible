@@ -1,0 +1,95 @@
+###
+### Packetbeat Agent configuration file.
+###
+### Packetbeat is a protocol monitoring service that
+### works by sniffing the network traffic between your application
+### components. It dumps the results into Elasticsearch.
+###
+### Go to http://packetbeat.com/getstarted for more details.
+###
+
+[elasticsearch]
+# Set the host and port where to find Elasticsearch.
+host = "{{ es_server }}"
+port = {{ es_port }}
+
+# Optional protocol and basic auth credentials
+# protocol = "https"
+# username = "admin"
+# password = "s3cr3t"
+
+# Optional index name and HTTP path
+#index = "packetbeat"
+#path = "/elasticsearch"
+
+[interfaces]
+# Select on which network interfaces to sniff. You can use the "any"
+# keyword to sniff on all connected interfaces.
+device = "any"
+
+[protocols]
+# Configure which protocols to monitor and on which ports are they
+# running. You can disable a given protocol by commenting out its
+# configuration.
+  [protocols.http]
+  ports = [80, 8080, 8000, 5000, 8002]
+
+  [protocols.mysql]
+  ports = [3306]
+
+ # [protocols.redis]
+ # ports = [6379]
+
+  [protocols.pgsql]
+  ports = [5432]
+
+[procs]
+# Uncomment the following line to disable the process monitoring.
+# dont_read_from_proc = true
+
+# Which processes to monitor and how to find them. The processes can
+# be found by searching their command line by a given string.
+#  [procs.monitored.mysqld]
+#  cmdline_grep = "mysqld"
+
+  [procs.monitored.pgsql]
+  cmdline_grep = "postgres"
+
+  [procs.monitored.nginx]
+  cmdline_grep = "nginx"
+
+ # [procs.monitored.app]
+ # cmdline_grep = "gunicorn"
+
+[agent]
+# The name of the agent as it will show up in the web interface. If not
+# defined, we will just use the hostname.
+#
+name = "{{ ansible_hostname }}"
+
+# Uncomment the following if you want to ignore transactions created
+# by the server on which the agent is installed. This option is useful
+# to remove duplicates if agents are installed on multiple servers.
+#ignore_outgoing = true
+
+[runoptions]
+# The Packetbeat agent can drop privileges after creating the sniffing
+# socket. Root access is required for opening the socket but everything
+# else requires no privileges. Therefore, it is strongly recommended
+# to have the Agent switch users after the initialization phase.
+# The following two settings set the User Id and the Group Id under
+# which the Agent will run.
+# Warning: Because on Linux Setuid doesn't change the uid of all threads,
+# the Go garbage collector will continue to run as root.
+# Note: Process monitoring only works when running as root.
+#uid=501
+#gid=501
+
+[passwords]
+# Uncomment the following to hide certain parameters from HTTP POST
+# requests. The value of the parameters will be replaced with '*' characters
+# This is generally useful for avoiding storing user passwords or other
+# sensitive information.
+#hide_keywords = ["pass=", "password=", "passwd=", "Password="]
+
+# vim: set ft=toml:

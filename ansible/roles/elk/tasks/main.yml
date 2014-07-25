@@ -1,0 +1,89 @@
+---
+# Tasks for elasticearch
+- name: installe jre
+  sudo: yes
+  tags: [elk]
+  apt: name="{{ item }}" state=present
+  with_items:
+    - default-jre
+    - nginx
+    - apache2-utils
+
+- name: download elk deb
+  tags: [elk]
+  get_url: dest="/tmp/es.deb"
+           url="{{ es_deb }}"
+           
+- name: install elk
+  sudo: yes
+  apt: deb="/tmp/es.deb"
+  tags: [elk]
+
+- name: start ES
+  sudo: yes
+  tags: [elk]
+  service: name=elasticsearch state=restarted
+  
+- name: wait for ES to come UP
+  sudo: yes
+  tags: [elk]
+  wait_for: port={{ es_port }} state=started host=127.0.0.1
+  
+- name: download kibana source
+  sudo: yes
+  tags: [elk]
+  get_url: dest="/opt/kibana.tar.gz"
+           url="{{ es_kibana }}"
+           
+- name: extract kibana archive
+  sudo: yes
+  tags: [elk]
+  shell: "cd /opt && tar xvf kibana.tar.gz"
+  
+- name: add template config.js to kibana
+  sudo: yes
+  tags: [elk]
+  template: src=config.js.j2 dest="/opt/kibana-{{ es_kibana_v }}-packetbeat/config.js"
+  
+- name: set password access to kibana
+  sudo: yes
+  tags: [elk]
+  shell: "htpasswd -c -b /etc/nginx/conf.d/{{ ansible_hostname }}.alterwaycloud.net.htpasswd devops devops"  
+  
+- name: add template nginx.conf to nginx
+  sudo: yes
+  tags: [elk]
+  template: src=nginx.conf.j2 dest="/etc/nginx/sites-enabled/{{ ansible_hostname }}.alterwaycloud.net.conf"
+  notify: [restart nginx]
+
+- name: add template packetbeat to ES
+  sudo: yes
+  tags: [elk]
+  template: src=packetbeat.template.json.j2 dest=/tmp/packetbeat.template.json
+  
+- name: load template into ES
+  sudo: yes
+  tags: [elk]
+  shell: "curl -XPUT 'http://127.0.0.1:9200/_template/packetbeat' -d@/tmp/packetbeat.template.json"
+  
+- name: check packetbeat template 
+  sudo: yes
+  tags: [elk]  
+  shell: "curl -XGET 'http://127.0.0.1:9200/_template/packetbeat?pretty'"
+  register: check
+
+- name: download packetbeat dashboard
+  sudo: yes
+  tags: [elk]
+  get_url: dest="/tmp/dashboard.tar.gz"
+           url="{{ es_dashboard }}"
+           
+- name: extract dashboard archive
+  sudo: yes
+  tags: [elk]
+  shell: "cd /tmp && tar xvf dashboard.tar.gz" 
+  
+- name: load dashboard into kibana
+  sudo: yes
+  tags: [elk]
+  shell: "cd /tmp/dashboards-{{ es_dashboard_v }} && bash ./load.sh"

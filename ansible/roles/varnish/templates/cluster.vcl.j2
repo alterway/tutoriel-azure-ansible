@@ -1,0 +1,38 @@
+backend web1 {
+  .host = "10.2.0.4";
+  .port = "80";
+  .probe = {
+    .url = "/";
+    .interval = 5s;
+    .timeout = 1 s;
+    .window = 5;
+    .threshold = 3;
+  }
+}
+
+backend web2 {
+  .host = "10.2.0.5";
+  .port = "80";
+  .probe = {
+    .url = "/";
+    .interval = 5s;
+    .timeout = 1 s;
+    .window = 5;
+    .threshold = 3;
+  }
+}
+
+director cluster round-robin {
+        {
+                .backend = web1;
+        }
+        {
+                .backend = web2;
+        }
+}
+
+sub vcl_recv {
+   if (req.http.host ~ "^awubuntum5\.alterwaycloud\.net$") {
+       set req.backend = cluster;
+   }
+}

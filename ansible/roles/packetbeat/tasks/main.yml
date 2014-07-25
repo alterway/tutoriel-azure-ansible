@@ -1,0 +1,19 @@
+---
+# Tasks for paket agents servers
+
+- name: download packetbeat deb
+  sudo: yes
+  tags: [packetbeat]
+  get_url: dest="/tmp/packetbeat_amd64.deb"
+           url="{{ pb_url }}"
+           
+- name: install packetbeat
+  sudo: yes
+  tags: [packetbeat]
+  apt: deb="/tmp/packetbeat_amd64.deb"
+  
+  
+- name: update packetbeat.conf
+  sudo: yes
+  template: src=packetbeat.conf.j2 dest=/etc/packetbeat/packetbeat.conf
+  notify: [restart packetbeat]

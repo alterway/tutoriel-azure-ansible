@@ -1,0 +1,28 @@
+---
+# Tasks for common servers
+- name: add hostname in /etc/hosts
+  sudo: yes
+  lineinfile: >
+              dest=/etc/hosts
+              line='{{ ansible_eth0.ipv4.address }} {{ ansible_hostname }}' 
+              owner=root 
+              group=root 
+              mode=0644
+
+- name: update sources.list
+  sudo: yes
+  template: src=sources.list.j2 dest=/etc/apt/sources.list
+
+- name: force sources to be updated
+  sudo: yes
+  apt: update_cache=yes 
+
+- name: install prerequisite packages
+  sudo: yes
+  apt: name="{{ item }}" state=present
+  with_items:
+    - htop
+    - build-essential
+    - libpcap0.8
+    
+  
